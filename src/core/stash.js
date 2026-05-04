@@ -161,5 +161,7 @@ module.exports = {
     stashPop,
     stashDrop,
     stashClear,
-    stashShow
+    stashShow,
+    readStash,
+    writeStash
 }
