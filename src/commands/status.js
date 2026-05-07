@@ -8,6 +8,7 @@ const parseTree = require('../helpers/parseTree')
 const getCurrentBranch = require('../helpers/getCurrentBranch')
 const getCurrentCommit = require('../helpers/getCurrentCommit')
 const readIndex = require('../helpers/readIndex')
+const { ensureRepo } = require('../core/repository')
 const { getMygitignorePatterns, isIgnored} = require('../utils/mygitignore')
 
 function readTree(treeHash, prefix='') {
@@ -83,10 +84,7 @@ function status() {
 
     const mygitDir = path.join(process.cwd(), '.mygit')
 
-    if (!fs.existsSync(mygitDir)) {
-        console.error('fatal: not a mygit repository')
-        process.exit(1)
-    }
+    ensureRepo()
 
     // 2. Get current branch
     const currentBranch = getCurrentBranch()
@@ -160,8 +158,7 @@ function status() {
         }
 
     } catch (error) {
-        console.error('error: unable to read current commit');
-        process.exit(1);
+        throw new Error(`Failed to read current commit: ${error.message}`)
     }
 
 
