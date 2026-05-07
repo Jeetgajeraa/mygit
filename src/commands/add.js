@@ -6,6 +6,7 @@ const getFileMode =  require('../helpers/getFileMode')
 const hashObjectContent = require('../helpers/hashObjectContent')
 const readIndex = require('../helpers/readIndex')
 const { getMygitignorePatterns, isIgnored } = require('../utils/mygitignore')
+const { ensureRepo } = require('../core/repository')
 
 function getIndexPath() {
     return path.join(process.cwd(), '.mygit', 'index')
@@ -34,7 +35,7 @@ function normalizePath(filePath) {
     // Get relative path
     let relativePath = path.relative(repoRoot, absolutePath)
 
-    // Convert to foward slashes (git's internal format)
+    // Convert to foward slashes 
     const modifiedPath = relativePath.split(path.sep).join('/')
 
     return modifiedPath
@@ -47,19 +48,19 @@ function addFile(filePath) {
 
     if (!fs.existsSync(absolutePath)) {
         console.error(`fatal: pathspec '${filePath}' did not match any files`)
-        process.exit(1)
+        return
     }
 
     const stats = fs.statSync(absolutePath)
 
     if (stats.isDirectory()) {
         console.error(`fatal: '${filePath}' is a directory. Use 'mygit add ${filePath}/*' or add files individually`)
-        process.exit(1)
+        return
     }
 
     if (!stats.isFile()) {
         console.error(`fatal: '${filePath}' is not a regular file`);
-        process.exit(1);
+        return
     }
 
     // read and hash the file
@@ -90,14 +91,14 @@ function addDirectory(dirPath) {
 
     if (!fs.existsSync(absolutePath)) {
         console.error(`fatal: pathspec '${dirPath}' did not match any files`);
-        process.exit(1);
+        return
     }
 
     const stats = fs.statSync(absolutePath)
 
     if (!stats.isDirectory()) {
         console.error(`fatal: '${dirPath}' is not a directory`);
-        process.exit(1);
+        return
     }
 
     const addedFiles = []
@@ -133,20 +134,14 @@ function addDirectory(dirPath) {
 
 function add(args) {
     // 1. Check if in a mygit repositiry 
-
-    const mygitDir = path.join(process.cwd(), '.mygit')
-
-    if (!fs.existsSync(mygitDir)) {
-        console.error('fatal: not a mygit repository')
-        process.exit(1)
-    }
+    ensureRepo()
 
     // 2. Parse Arguments
 
     if (args.length === 0) {
         console.error('Nothing specified, nothing added.');
         console.error('Maybe you wanted to say \'mygit add .\'?');
-        process.exit(1);
+        return
     }
 
     // 3. Process each file/pattern
@@ -160,7 +155,7 @@ function add(args) {
 
             if (!fs.existsSync(absolutePath)) {
                 console.error(`fatal: pathspec '${arg}' did not match any files`);
-                process.exit(1);
+                return
             }
 
             const stats = fs.statSync(absolutePath)
