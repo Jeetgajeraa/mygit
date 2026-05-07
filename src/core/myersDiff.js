@@ -144,7 +144,7 @@ function myersDiff(a, b) {
     const {trace, d} = forward(a, b)
 
     // d === 0 means files ar identical
-    if (d.length === 0) return [{ type: 'equal', tokens: [...a]}]
+    if (d === 0) return [{ type: 'equal', tokens: [...a]}]
 
     const ops = backtrack(trace, a, b, d)
 
